@@ -1,7 +1,7 @@
 Class esh.iris.entity.api.security Extends %RegisteredObject
 {
 
-Parameter webapp = "/iris-table-stats/api";
+Parameter webapp = "/in-explorer/api";
 
 ClassMethod SetupSecurity() As %Status
 {
