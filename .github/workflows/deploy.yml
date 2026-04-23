@@ -11,7 +11,7 @@ jobs:
   deploy:
     uses: intersystems-community/cloud-deployment/.github/workflows/deployment.yml@main
     with:
-      name: iris-table-stats
+      name: in-explorer
       ## Optional
       # memory: 1Gi
       # port: 8081
