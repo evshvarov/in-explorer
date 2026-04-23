@@ -1,0 +1,76 @@
+name: Sync OpenAPI to Frontend
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - src/esh/iris/entity/api/spec.cls
+      - scripts/export_openapi_from_spec.py
+      - .github/workflows/sync-openapi-to-frontend.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-openapi:
+    runs-on: ubuntu-latest
+    env:
+      FRONTEND_REPO: ${{ vars.FRONTEND_REPO }}
+      FRONTEND_BRANCH: ${{ vars.FRONTEND_BRANCH }}
+      FRONTEND_SPEC_PATH: ${{ vars.FRONTEND_SPEC_PATH }}
+      FRONTEND_COMMITTER_NAME: evgeny
+      FRONTEND_COMMITTER_EMAIL: evgeny.shvarov@gmail.com
+    steps:
+      - name: Checkout backend repo
+        uses: actions/checkout@v4
+
+      - name: Validate required configuration
+        run: |
+          if [ -z "${FRONTEND_REPO}" ]; then
+            echo "Repository variable FRONTEND_REPO is required (format: owner/repo)." >&2
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.FRONTEND_REPO_TOKEN }}" ]; then
+            echo "Repository secret FRONTEND_REPO_TOKEN is required." >&2
+            exit 1
+          fi
+
+      - name: Set defaults
+        run: |
+          echo "FRONTEND_BRANCH=${FRONTEND_BRANCH:-main}" >> "$GITHUB_ENV"
+          echo "FRONTEND_SPEC_PATH=${FRONTEND_SPEC_PATH:-src/api/openapi.json}" >> "$GITHUB_ENV"
+          echo "FRONTEND_COMMITTER_NAME=${FRONTEND_COMMITTER_NAME:-iris-table-stats-bot}" >> "$GITHUB_ENV"
+          echo "FRONTEND_COMMITTER_EMAIL=${FRONTEND_COMMITTER_EMAIL:-bot@users.noreply.github.com}" >> "$GITHUB_ENV"
+
+      - name: Export OpenAPI spec from spec.cls
+        run: |
+          python3 scripts/export_openapi_from_spec.py \
+            --input src/esh/iris/entity/api/spec.cls \
+            --output /tmp/openapi.json
+
+      - name: Clone frontend repo
+        run: |
+          git clone \
+            --branch "$FRONTEND_BRANCH" \
+            "https://x-access-token:${{ secrets.FRONTEND_REPO_TOKEN }}@github.com/${FRONTEND_REPO}.git" \
+            /tmp/frontend-repo
+
+      - name: Copy and commit if changed
+        run: |
+          cd /tmp/frontend-repo
+          cp /tmp/openapi.json "$FRONTEND_SPEC_PATH"
+
+          git add "$FRONTEND_SPEC_PATH"
+          if git diff --cached --quiet -- "$FRONTEND_SPEC_PATH"; then
+            echo "No OpenAPI changes detected. Nothing to commit."
+            exit 0
+          fi
+
+          git -c user.name="$FRONTEND_COMMITTER_NAME" \
+              -c user.email="$FRONTEND_COMMITTER_EMAIL" \
+              commit -m "chore(api): sync OpenAPI spec from iris-table-stats"
+          git push origin "$FRONTEND_BRANCH"

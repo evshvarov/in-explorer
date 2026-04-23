@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+
+        "iris.script": "objectscript"
+      },
+    "objectscript.conn": {
+      "active": false,
+      "host": "iris-table-stats.sandbox.developer.intersystems.com",
+      "port": 443,
+      "ns": "USER",
+      "https": true,
+      "username": "_SYSTEM",
+      "password": "*IrisDemo123"
+    }
+}
