@@ -22,6 +22,3 @@ RUN --mount=type=bind,src=.,dst=. \
     ([ $TESTS -eq 0 ] || printf 'zn "%s"\nzpm "test %s -v -only"\nhalt\n' "$NAMESPACE" "$MODULE" | iris session IRIS) && \
     iris stop IRIS quietly
 
-RUN old=http://localhost:52773/crud/_spec && \
-	new=http://localhost:57337/iris-table-stats/api/_spec && \
-    sed -i "s|$old|$new|g" /usr/irissys/csp/swagger-ui/swagger-initializer.js
