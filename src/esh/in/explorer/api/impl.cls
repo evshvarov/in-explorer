@@ -1,9 +1,11 @@
+/// REST API for storing and exploring LinkedIn connections in InterSystems IRIS.<br/>
+/// Business logic class defined by OpenAPI in esh.in.explorer.api.spec<br/>
+/// Updated Apr 23, 2026 21:48:29
 Class esh.in.explorer.api.impl Extends %REST.Impl [ ProcedureBlock ]
 {
 
 Parameter ExposeServerExceptions = 1;
 
-/// /_spec
 /// Get OpenAPI spec
 ClassMethod GetSpec() As %DynamicObject
 {
@@ -14,7 +16,19 @@ ClassMethod GetSpec() As %DynamicObject
     Quit spec
 }
 
-ClassMethod ListConnections(search As %String = "", city As %String = "", industry As %String = "", company As %String = "", ARoleFilter As %String = "", tag As %String = "", sort As %String = "recent", page As %Integer = 1, pageSize As %Integer = 50) As %DynamicObject
+/// List connections<br/>
+/// The method arguments hold values for:<br/>
+///     search<br/>
+///     city<br/>
+///     industry<br/>
+///     company<br/>
+///     role<br/>
+///     tag<br/>
+///     sort<br/>
+///     page<br/>
+///     pageSize<br/>
+/// WARNING: This method's signature has changed.
+ClassMethod ListConnections(search As %String, city As %String, industry As %String, company As %String, role As %String, tag As %String, sort As %String = "recent", page As %Integer = 1, pageSize As %Integer = 50) As %DynamicObject
 {
     Set result = {}
     Set roleFilter = $Get(ARoleFilter)
@@ -55,7 +69,11 @@ ClassMethod ListConnections(search As %String = "", city As %String = "", indust
     Quit result
 }
 
-ClassMethod UpsertConnections() As %DynamicObject
+/// Upsert one or more connections<br/>
+/// The method arguments hold values for:<br/>
+///     body<br/>
+/// WARNING: This method's signature has changed.
+ClassMethod UpsertConnections(body As %DynamicObject) As %DynamicObject
 {
     Set result = {}
     Do result.%Set("upserted", 0)
@@ -81,6 +99,24 @@ ClassMethod UpsertConnections() As %DynamicObject
     Quit result
 }
 
+/// Import connections from LinkedIn CSV<br/>
+/// The method arguments hold values for:<br/>
+///     path, Optional absolute path to CSV file. Defaults to /home/irisowner/dev/data/Connections.csv.<br/>
+/// WARNING: This method's signature has changed.
+ClassMethod ImportConnectionsCsv(path As %String) As %DynamicObject
+{
+    Set result = {}
+    Set sc = ##class(esh.in.explorer.connectionimport).ImportFromFile(path, .result)
+    If $$$ISERR(sc) {
+        Do ..%SetStatusCode(500)
+        Do ..%SetHeader("X-Error", "Status error: "_$System.Status.GetErrorText(sc))
+    }
+    Quit result
+}
+
+/// Get one connection<br/>
+/// The method arguments hold values for:<br/>
+///     id<br/>
 ClassMethod GetConnection(id As %String) As %DynamicObject
 {
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
@@ -92,7 +128,12 @@ ClassMethod GetConnection(id As %String) As %DynamicObject
     Quit ..ConnectionToDynamicObject(connection)
 }
 
-ClassMethod PatchConnection(id As %String) As %DynamicObject
+/// Patch a connection<br/>
+/// The method arguments hold values for:<br/>
+///     id<br/>
+///     body<br/>
+/// WARNING: This method's signature has changed.
+ClassMethod PatchConnection(id As %String, body As %DynamicObject) As %DynamicObject
 {
     Set result = {}
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
@@ -123,7 +164,11 @@ ClassMethod PatchConnection(id As %String) As %DynamicObject
     Quit ..ConnectionToDynamicObject(connection)
 }
 
-ClassMethod DeleteConnection(id As %String)
+/// Delete a connection<br/>
+/// The method arguments hold values for:<br/>
+///     id<br/>
+/// WARNING: This method's signature has changed.
+ClassMethod DeleteConnection(id As %String) As %DynamicObject
 {
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
     If '$IsObject(connection) {
@@ -157,7 +202,11 @@ ClassMethod DeleteConnection(id As %String)
     Quit ""
 }
 
-ClassMethod GetConnectionFacets(search As %String = "") As %DynamicObject
+/// Counts for sidebar filters<br/>
+/// The method arguments hold values for:<br/>
+///     search<br/>
+/// WARNING: This method's signature has changed.
+ClassMethod GetConnectionFacets(search As %String) As %DynamicObject
 {
     Set search = ##class(esh.in.explorer.connection).NormalizeSearch(search)
     Set result = {}

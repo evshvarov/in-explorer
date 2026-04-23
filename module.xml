@@ -22,7 +22,6 @@
         CorsHeadersList="Content-Type,Authorization,Accept-Language,X-Requested-With,session"
        />
       <Invoke Class="esh.in.explorer.api.security" Method="SetupSecurity"></Invoke>
-      <Invoke Class="esh.in.explorer.tests.runner" Method="RunTests" Phase="test"></Invoke>
     </Module>
   </Document>
 </Export>

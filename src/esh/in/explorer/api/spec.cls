@@ -120,6 +120,29 @@ XData OpenAPI [ MimeType = application/json ]
         }
       }
     },
+    "/connections/import-csv": {
+      "post": {
+        "summary": "Import connections from LinkedIn CSV",
+        "operationId": "ImportConnectionsCsv",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "type": "string",
+            "description": "Optional absolute path to CSV file. Defaults to /home/irisowner/dev/data/Connections.csv."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Import summary",
+            "schema": { "$ref": "#/definitions/ImportSummary" }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/connections/facets": {
       "get": {
         "summary": "Counts for sidebar filters",
@@ -291,6 +314,30 @@ XData OpenAPI [ MimeType = application/json ]
       "type": "object",
       "properties": {
         "upserted": { "type": "integer", "format": "int32" }
+      }
+    },
+    "ImportError": {
+      "type": "object",
+      "properties": {
+        "line": { "type": "integer", "format": "int32" },
+        "message": { "type": "string" }
+      }
+    },
+    "ImportSummary": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "status": { "type": "string", "enum": ["ok", "partial", "error"] },
+        "processed": { "type": "integer", "format": "int32" },
+        "imported": { "type": "integer", "format": "int32" },
+        "inserted": { "type": "integer", "format": "int32" },
+        "updated": { "type": "integer", "format": "int32" },
+        "skipped": { "type": "integer", "format": "int32" },
+        "failed": { "type": "integer", "format": "int32" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ImportError" }
+        }
       }
     }
   }

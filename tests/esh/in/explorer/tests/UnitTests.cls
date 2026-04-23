@@ -164,4 +164,15 @@ Method TestUpsertConnectionArray()
     Do ..CleanupConnection(linkedInId2)
 }
 
+Method TestImportConnectionsCsv()
+{
+    Do ..InitRequestResponse()
+    Set result = ##class(esh.in.explorer.api.impl).ImportConnectionsCsv("/home/irisowner/dev/data/Connections.csv")
+    Do $$$AssertTrue($IsObject(result), "Import response must be an object")
+    Do $$$AssertEquals(result.path, "/home/irisowner/dev/data/Connections.csv", "Unexpected import path")
+    Do $$$AssertTrue((result.status = "ok") || (result.status = "partial"), "Unexpected import status")
+    Do $$$AssertTrue(result.processed > 0, "CSV import should process at least one row")
+    Do $$$AssertTrue(result.imported > 0, "CSV import should import at least one row")
+}
+
 }

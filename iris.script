@@ -26,5 +26,11 @@
     ;zpm "install dataset-medical"
     
     zpm "load /home/irisowner/dev -v":1:1
+    set sc = ##class(esh.in.explorer.connectionimport).ImportFromFile("/home/irisowner/dev/data/Connections.csv", .summary)
+    if $SYSTEM.Status.IsError(sc) {
+        write !,"Connection CSV import failed: ",$SYSTEM.Status.GetErrorText(sc),!
+        halt 1
+    }
+    write !,"Connection CSV import summary: status=",summary.status,", imported=",summary.imported,", inserted=",summary.inserted,", updated=",summary.updated,", failed=",summary.failed,!
     
     halt
