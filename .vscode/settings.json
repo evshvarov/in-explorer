@@ -12,7 +12,7 @@
       "service": "iris",
       "internalPort": 52773
     },
-    "active": false,
+    "active": true,
     "links": {
       "UnitTest Portal": "${serverUrl}/csp/sys/%25UnitTest.Portal.Home.cls?$NAMESPACE=USER",
       "Error Log": "${serverUrl}/csp/sys/op/UtilSysAppErrorNamespaces.csp",

@@ -1,33 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
-  <Document name="esh-iris-table-stats.ZPM">
+  <Document name="esh-in-explorer.ZPM">
     <Module>
-      <Name>esh-iris-table-stats</Name>
-      <Description>Helps to get stats for a particular IRIS table fields</Description>
+      <Name>esh-in-explorer</Name>
+      <Description>LinkedIn contacts backend for InterSystems IRIS</Description>
       <Version>1.0.0</Version>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
-      <Resource Name="esh.iris.entity.PKG"/>
-      <UnitTest Name="/tests" Package="esh.iris.entity.tests" Phase="test"/>
+      <Resource Name="esh.in.explorer.PKG"/>
       <CSPApplication
-        Url="/iris-table-stats/api"
-        DispatchClass="esh.iris.entity.api.disp"
+        Url="/in-explorer/api"
+        DispatchClass="esh.in.explorer.api.disp"
         MatchRoles=":{$dbrole}"
         PasswordAuthEnabled="0"
         UnauthenticatedEnabled="1"
         Recurse="1"
         UseCookies="2"
-        CookiePath="/iris-table-stats/api/"
+        CookiePath="/in-explorer/api/"
         CorsAllowlist="*"
         CorsCredentialsAllowed="1"
         CorsHeadersList="Content-Type,Authorization,Accept-Language,X-Requested-With,session"
        />
-      <Invoke Class="esh.iris.entity.api.security" Method="SetupSecurity"></Invoke>
-      <!-- Optional: seed demo data on install
-      <Invoke Class="esh.iris.entity.Utils" Method="CreateRecords">
-      <Arg>1</Arg>
-      </Invoke>
-      -->
+      <Invoke Class="esh.in.explorer.api.security" Method="SetupSecurity"></Invoke>
+      <Invoke Class="esh.in.explorer.tests.runner" Method="RunTests" Phase="test"></Invoke>
     </Module>
   </Document>
 </Export>
