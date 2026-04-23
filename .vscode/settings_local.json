@@ -32,7 +32,7 @@
         "driver": "InterSystems IRIS",
         "name": "objectscript-docker",
         "username": "_SYSTEM",
-        "password": "*IrisDemo123"
+        "password": "@In2025"
       }
     ]
 

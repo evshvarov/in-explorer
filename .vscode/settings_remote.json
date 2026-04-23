@@ -5,11 +5,11 @@
       },
     "objectscript.conn": {
       "active": false,
-      "host": "iris-table-stats.sandbox.developer.intersystems.com",
+      "host": "in-explorer.sandbox.developer.intersystems.com",
       "port": 443,
       "ns": "USER",
       "https": true,
       "username": "_SYSTEM",
-      "password": "*IrisDemo123"
+      "password": "@In2025"
     }
 }
