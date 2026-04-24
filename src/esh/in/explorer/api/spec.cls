@@ -153,7 +153,8 @@ XData OpenAPI [ MimeType = application/json ]
             "schema": { "$ref": "#/definitions/ConnectionPage" }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "500": {
             "description": "Server error"
@@ -180,7 +181,8 @@ XData OpenAPI [ MimeType = application/json ]
             "description": "Invalid request"
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "500": {
             "description": "Server error"
@@ -206,7 +208,8 @@ XData OpenAPI [ MimeType = application/json ]
             "schema": { "$ref": "#/definitions/ImportSummary" }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "500": {
             "description": "Server error"
@@ -227,7 +230,8 @@ XData OpenAPI [ MimeType = application/json ]
             "schema": { "$ref": "#/definitions/Facets" }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "500": {
             "description": "Server error"
@@ -248,7 +252,8 @@ XData OpenAPI [ MimeType = application/json ]
             "schema": { "$ref": "#/definitions/Connection" }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "404": {
             "description": "Not found"
@@ -276,7 +281,8 @@ XData OpenAPI [ MimeType = application/json ]
             "description": "Invalid request"
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "404": {
             "description": "Not found"
@@ -297,7 +303,8 @@ XData OpenAPI [ MimeType = application/json ]
             "description": "Deleted"
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
           },
           "404": {
             "description": "Not found"
@@ -337,6 +344,13 @@ XData OpenAPI [ MimeType = application/json ]
         "authenticated": { "type": "boolean" },
         "sessionToken": { "type": "string", "x-nullable": true },
         "user": { "$ref": "#/definitions/AuthUser", "x-nullable": true }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "required": ["error"],
+      "properties": {
+        "error": { "type": "string" }
       }
     },
     "ConnectionOrArray": {
