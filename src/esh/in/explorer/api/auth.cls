@@ -216,6 +216,8 @@ ClassMethod PrepareHttpRequest(url As %String, ByRef request As %Net.HttpRequest
     }
     If scheme = "https" {
         Set request.Https = 1
+        Set request.SSLConfiguration = "default"
+        Set request.SSLCheckServerIdentity = 1
     }
     Quit $$$OK
 }
