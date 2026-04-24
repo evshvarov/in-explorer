@@ -287,16 +287,18 @@ ClassMethod ValueInList(value As %String = "", csvList As %String = "") As %Bool
     Quit:(csvList = "") 0
 
     Set target = $ZConvert(..Trim(value), "L")
+    Set found = 0
     For index = 1:1:$Length(csvList, ",") {
         Set item = $ZConvert(..Trim($Piece(csvList, ",", index)), "L")
         If item = "" {
             Continue
         }
         If item = target {
-            Quit 1
+            Set found = 1
+            Quit
         }
     }
-    Quit 0
+    Quit found
 }
 
 ClassMethod HostedDomain(claims As %DynamicObject, email As %String = "") As %String

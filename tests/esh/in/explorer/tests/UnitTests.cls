@@ -231,4 +231,11 @@ Method TestCurrentEpochUsesUnixTime()
     Do $$$AssertTrue(now < 2000000000, "Current epoch should be in a reasonable Unix timestamp range")
 }
 
+Method TestValueInList()
+{
+    Do $$$AssertTrue(##class(esh.in.explorer.api.auth).ValueInList("evgeny.shvarov@gmail.com", "alice@example.com, evgeny.shvarov@gmail.com"), "Email should be found in allowlist")
+    Do $$$AssertTrue(##class(esh.in.explorer.api.auth).ValueInList("EXAMPLE.COM", "foo.com, example.com"), "Match should be case-insensitive")
+    Do $$$AssertTrue('##class(esh.in.explorer.api.auth).ValueInList("carol@example.com", "alice@example.com,bob@example.com"), "Missing value should not match")
+}
+
 }
