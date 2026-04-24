@@ -16,6 +16,48 @@ ClassMethod GetSpec() As %DynamicObject
     Quit spec
 }
 
+ClassMethod AuthGoogle(body As %DynamicObject) As %DynamicObject
+{
+    Set result = ##class(esh.in.explorer.api.auth).UnauthenticatedState()
+    Set body = ..ReadRequestBody()
+    If '$IsObject(body) {
+        Do ..%SetStatusCode(400)
+        Do ..%SetHeader("X-Error", "Request body must be valid JSON")
+        Quit result
+    }
+
+    Set credential = ..DynamicValue(body, "credential")
+    Set csrfToken = ..DynamicValue(body, "csrfToken")
+    Set sc = ##class(esh.in.explorer.api.auth).LoginWithGoogle(credential, csrfToken, .result, .httpStatus)
+    If $$$ISERR(sc) {
+        Do ..%SetStatusCode(httpStatus)
+        Do ..%SetHeader("X-Error", "Status error: "_$System.Status.GetErrorText(sc))
+    }
+    Quit result
+}
+
+ClassMethod AuthMe() As %DynamicObject
+{
+    Set result = ##class(esh.in.explorer.api.auth).UnauthenticatedState()
+    Set sc = ##class(esh.in.explorer.api.auth).GetCurrentAuthState(.result)
+    If $$$ISERR(sc) {
+        Do ..%SetStatusCode(500)
+        Do ..%SetHeader("X-Error", "Status error: "_$System.Status.GetErrorText(sc))
+    }
+    Quit result
+}
+
+ClassMethod AuthLogout() As %DynamicObject
+{
+    Set result = ##class(esh.in.explorer.api.auth).UnauthenticatedState()
+    Set sc = ##class(esh.in.explorer.api.auth).Logout(.result)
+    If $$$ISERR(sc) {
+        Do ..%SetStatusCode(500)
+        Do ..%SetHeader("X-Error", "Status error: "_$System.Status.GetErrorText(sc))
+    }
+    Quit result
+}
+
 /// List connections<br/>
 /// The method arguments hold values for:<br/>
 ///     search<br/>
@@ -30,6 +72,9 @@ ClassMethod GetSpec() As %DynamicObject
 /// WARNING: This method's signature has changed.
 ClassMethod ListConnections(search As %String, city As %String, industry As %String, company As %String, role As %String, tag As %String, sort As %String = "recent", page As %Integer = 1, pageSize As %Integer = 50) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Quit ..EmptyConnectionPage()
+    }
     Set result = {}
     Set roleFilter = $Get(ARoleFilter)
     Set page = ..NormalizePage(page)
@@ -75,6 +120,11 @@ ClassMethod ListConnections(search As %String, city As %String, industry As %Str
 /// WARNING: This method's signature has changed.
 ClassMethod UpsertConnections(body As %DynamicObject) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Set unauthorized = {}
+        Do unauthorized.%Set("upserted", 0)
+        Quit unauthorized
+    }
     Set result = {}
     Do result.%Set("upserted", 0)
     Set body = ..ReadRequestBody()
@@ -105,6 +155,9 @@ ClassMethod UpsertConnections(body As %DynamicObject) As %DynamicObject
 /// WARNING: This method's signature has changed.
 ClassMethod ImportConnectionsCsv(path As %String) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Quit {}
+    }
     Set result = {}
     Set sc = ##class(esh.in.explorer.connectionimport).ImportFromFile(path, .result)
     If $$$ISERR(sc) {
@@ -119,6 +172,9 @@ ClassMethod ImportConnectionsCsv(path As %String) As %DynamicObject
 ///     id<br/>
 ClassMethod GetConnection(id As %String) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Quit {}
+    }
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
     If '$IsObject(connection) {
         Do ..%SetStatusCode(404)
@@ -135,6 +191,9 @@ ClassMethod GetConnection(id As %String) As %DynamicObject
 /// WARNING: This method's signature has changed.
 ClassMethod PatchConnection(id As %String, body As %DynamicObject) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Quit {}
+    }
     Set result = {}
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
     If '$IsObject(connection) {
@@ -170,6 +229,9 @@ ClassMethod PatchConnection(id As %String, body As %DynamicObject) As %DynamicOb
 /// WARNING: This method's signature has changed.
 ClassMethod DeleteConnection(id As %String) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Quit ""
+    }
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
     If '$IsObject(connection) {
         Do ..%SetStatusCode(404)
@@ -208,6 +270,9 @@ ClassMethod DeleteConnection(id As %String) As %DynamicObject
 /// WARNING: This method's signature has changed.
 ClassMethod GetConnectionFacets(search As %String) As %DynamicObject
 {
+    If '..RequireAuthenticatedUser(.authUser) {
+        Quit ..EmptyFacets()
+    }
     Set search = ##class(esh.in.explorer.connection).NormalizeSearch(search)
     Set result = {}
     Do result.%Set("cities", ..FacetResultToArray(##class(esh.in.explorer.connection).FacetCitiesFunc(search), .sc))
@@ -553,6 +618,37 @@ ClassMethod NullableDate(value As %Date = "")
         Quit $c(0)
     }
     Quit ##class(%Library.Date).LogicalToOdbc(value)
+}
+
+ClassMethod RequireAuthenticatedUser(ByRef authUser As %DynamicObject) As %Boolean
+{
+    Set ok = ##class(esh.in.explorer.api.auth).GetAuthenticatedUser(.authUser, .sessionId, .httpStatus)
+    If 'ok {
+        Do ..%SetStatusCode(httpStatus)
+        Do ..%SetHeader("X-Error", "Authentication required")
+    }
+    Quit ok
+}
+
+ClassMethod EmptyConnectionPage() As %DynamicObject
+{
+    Set result = {}
+    Do result.%Set("items", [])
+    Do result.%Set("total", 0)
+    Do result.%Set("page", 1)
+    Do result.%Set("pageSize", 50)
+    Quit result
+}
+
+ClassMethod EmptyFacets() As %DynamicObject
+{
+    Set result = {}
+    Do result.%Set("cities", [])
+    Do result.%Set("industries", [])
+    Do result.%Set("companies", [])
+    Do result.%Set("roles", [])
+    Do result.%Set("tags", [])
+    Quit result
 }
 
 ClassMethod NormalizeDate(value As %String = "", ByRef sc As %Status)

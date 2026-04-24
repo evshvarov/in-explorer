@@ -17,6 +17,17 @@ Method SetRequestBody(json As %String)
     Set %request.Content = stream
 }
 
+Method AuthenticateRequest(email As %String = "tester@example.com", name As %String = "Test User")
+{
+    Set user = {}
+    Do user.%Set("sub", "unit-auth-"_$J_"-"_$Random(100000))
+    Do user.%Set("email", email)
+    Do user.%Set("name", name)
+    Set sc = ##class(esh.in.explorer.api.auth).CreateSession(user, .sessionId, .expiresAt)
+    Do $$$AssertStatusOK(sc, "Test session should be created")
+    Set %request.CgiEnvs("HTTP_COOKIE") = ##class(esh.in.explorer.api.auth).SessionCookieNameValue()_"="_sessionId
+}
+
 Method CleanupConnection(linkedInId As %String)
 {
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(linkedInId)
@@ -76,12 +87,14 @@ Method TestConnectionCRUDAndFacets()
         Do ..CleanupConnection(linkedInId)
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Do ..SetRequestBody("{""id"":"""_linkedInId_""",""firstName"":""Vittoria"",""lastName"":""Braggion"",""url"":""https://www.linkedin.com/in/"_linkedInId_""",""email"":""vittoria@example.com"",""company"":""Docebo"",""position"":""Business Development Representative"",""connectedOn"":""18 Apr 2026"",""city"":""Milan"",""country"":""Italy"",""industry"":""Education"",""roleTags"":[""sales""],""tags"":[""warm"",""saas""],""notes"":""First import""}")
         Set upserted = ##class(esh.in.explorer.api.impl).UpsertConnections()
         Do $$$AssertTrue($IsObject(upserted), "Upsert response must be an object")
         Do $$$AssertEquals(upserted.upserted, 1, "Unexpected upsert count")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Set connection = ##class(esh.in.explorer.api.impl).GetConnection(linkedInId)
         Do $$$AssertTrue($IsObject(connection), "Connection must be returned")
         Do $$$AssertEquals(connection.id, linkedInId, "Unexpected id")
@@ -93,12 +106,14 @@ Method TestConnectionCRUDAndFacets()
         Do $$$AssertEquals(connection.tags.%Size(), 2, "Unexpected tags count")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Set listed = ##class(esh.in.explorer.api.impl).ListConnections("Vittoria", "Milan", "Education", "Docebo", "sales", "warm", "recent", 1, 50)
         Do $$$AssertTrue($IsObject(listed), "List response must be an object")
         Do $$$AssertTrue($IsObject(listed.items), "List items must be an array")
         Do $$$AssertTrue(listed.items.%Size() >= 0, "List query should return an array result")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Set facets = ##class(esh.in.explorer.api.impl).GetConnectionFacets("Vittoria")
         Do $$$AssertTrue($IsObject(facets), "Facets response must be an object")
         Do $$$AssertTrue($IsObject(..FindFacet(facets.cities, "Milan")), "City facet should contain Milan")
@@ -108,6 +123,7 @@ Method TestConnectionCRUDAndFacets()
         Do $$$AssertTrue($IsObject(..FindFacet(facets.tags, "warm")), "Tag facet should contain warm")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Do ..SetRequestBody("{""city"":""London"",""notes"":""Updated note"",""roleTags"":[""operator""],""tags"":[""vip""]}")
         Set patched = ##class(esh.in.explorer.api.impl).PatchConnection(linkedInId)
         Do $$$AssertTrue($IsObject(patched), "Patch response must be an object")
@@ -119,10 +135,12 @@ Method TestConnectionCRUDAndFacets()
         Do $$$AssertEquals(patched.tags.%Get(0), "vip", "Patched tags mismatch")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Do ##class(esh.in.explorer.api.impl).DeleteConnection(linkedInId)
         Do $$$AssertEquals(+%response.Status, 204, "Delete should set 204")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Set missing = ##class(esh.in.explorer.api.impl).GetConnection(linkedInId)
         Do $$$AssertTrue($IsObject(missing), "Missing connection response must be an object")
         Do $$$AssertEquals(missing.%Size(), 0, "Deleted connection should not be returned")
@@ -143,16 +161,19 @@ Method TestUpsertConnectionArray()
         Do ..CleanupConnection(linkedInId2)
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Do ..SetRequestBody("[{""id"":"""_linkedInId1_""",""firstName"":""Ada"",""lastName"":""Lovelace"",""url"":""https://www.linkedin.com/in/"_linkedInId1_"""},{""id"":"""_linkedInId2_""",""firstName"":""Grace"",""lastName"":""Hopper"",""url"":""https://www.linkedin.com/in/"_linkedInId2_""",""company"":""Navy""}]")
         Set result = ##class(esh.in.explorer.api.impl).UpsertConnections()
         Do $$$AssertTrue($IsObject(result), "Batch upsert response must be an object")
         Do $$$AssertEquals(result.upserted, 2, "Batch upsert count mismatch")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Set firstConnection = ##class(esh.in.explorer.api.impl).GetConnection(linkedInId1)
         Do $$$AssertEquals(firstConnection.firstName, "Ada", "First batch record missing")
 
         Do ..InitRequestResponse()
+        Do ..AuthenticateRequest()
         Set secondConnection = ##class(esh.in.explorer.api.impl).GetConnection(linkedInId2)
         Do $$$AssertEquals(secondConnection.company, "Navy", "Second batch record missing")
     } Catch ex {
@@ -167,12 +188,40 @@ Method TestUpsertConnectionArray()
 Method TestImportConnectionsCsv()
 {
     Do ..InitRequestResponse()
+    Do ..AuthenticateRequest()
     Set result = ##class(esh.in.explorer.api.impl).ImportConnectionsCsv("/home/irisowner/dev/data/Connections.csv")
     Do $$$AssertTrue($IsObject(result), "Import response must be an object")
     Do $$$AssertEquals(result.path, "/home/irisowner/dev/data/Connections.csv", "Unexpected import path")
     Do $$$AssertTrue((result.status = "ok") || (result.status = "partial"), "Unexpected import status")
     Do $$$AssertTrue(result.processed > 0, "CSV import should process at least one row")
     Do $$$AssertTrue(result.imported > 0, "CSV import should import at least one row")
+}
+
+Method TestAuthSessionLifecycle()
+{
+    Do ..InitRequestResponse()
+    Set user = {}
+    Do user.%Set("sub", "google-sub-123")
+    Do user.%Set("email", "user@example.com")
+    Do user.%Set("name", "Explorer User")
+    Set sc = ##class(esh.in.explorer.api.auth).CreateSession(user, .sessionId, .expiresAt)
+    Do $$$AssertStatusOK(sc, "Session should be created")
+    Set %request.CgiEnvs("HTTP_COOKIE") = ##class(esh.in.explorer.api.auth).SessionCookieNameValue()_"="_sessionId
+
+    Set ok = ##class(esh.in.explorer.api.auth).GetAuthenticatedUser(.currentUser, .currentSessionId, .httpStatus)
+    Do $$$AssertTrue(ok, "Session should authenticate")
+    Do $$$AssertEquals(httpStatus, 200, "Unexpected auth status")
+    Do $$$AssertEquals(currentSessionId, sessionId, "Session id mismatch")
+    Do $$$AssertEquals(currentUser.sub, "google-sub-123", "Unexpected session subject")
+    Do $$$AssertEquals(currentUser.email, "user@example.com", "Unexpected session email")
+
+    Set sc = ##class(esh.in.explorer.api.auth).Logout(.logoutState)
+    Do $$$AssertStatusOK(sc, "Logout should succeed")
+    Do $$$AssertEquals(logoutState.authenticated, 0, "Logout should clear auth state")
+
+    Set ok = ##class(esh.in.explorer.api.auth).GetAuthenticatedUser(.loggedOutUser, .loggedOutSessionId, .loggedOutStatus)
+    Do $$$AssertTrue('ok, "Session should be removed after logout")
+    Do $$$AssertEquals(loggedOutStatus, 401, "Logged out status mismatch")
 }
 
 }

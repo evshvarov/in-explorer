@@ -6,6 +6,8 @@ services:
     restart: always
     environment:
       - ISC_CPF_MERGE_FILE=/home/irisowner/dev/merge.cpf
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_ALLOWED_EMAILS=${GOOGLE_ALLOWED_EMAILS:-}
     ports:
       - 1972
       - 57338:52773

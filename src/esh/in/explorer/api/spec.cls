@@ -31,15 +31,77 @@ XData OpenAPI [ MimeType = application/json ]
       "description": "Bearer token authentication."
     }
   },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "paths": {
     "/_spec": {
       "get": {
         "summary": "Get OpenAPI spec",
         "operationId": "GetSpec",
+        "security": [],
         "responses": {
           "200": {
             "description": "Swagger spec JSON",
             "schema": { "type": "object" }
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "summary": "Sign in with Google",
+        "operationId": "AuthGoogle",
+        "security": [],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/GoogleAuthRequest" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated",
+            "schema": { "$ref": "#/definitions/AuthState" }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Invalid Google credential"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Get current authentication state",
+        "operationId": "AuthMe",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Current auth state",
+            "schema": { "$ref": "#/definitions/AuthState" }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Log out current session",
+        "operationId": "AuthLogout",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Logged out",
+            "schema": { "$ref": "#/definitions/AuthState" }
           }
         }
       }
@@ -90,6 +152,9 @@ XData OpenAPI [ MimeType = application/json ]
             "description": "Paginated list",
             "schema": { "$ref": "#/definitions/ConnectionPage" }
           },
+          "401": {
+            "description": "Authentication required"
+          },
           "500": {
             "description": "Server error"
           }
@@ -114,6 +179,9 @@ XData OpenAPI [ MimeType = application/json ]
           "400": {
             "description": "Invalid request"
           },
+          "401": {
+            "description": "Authentication required"
+          },
           "500": {
             "description": "Server error"
           }
@@ -137,6 +205,9 @@ XData OpenAPI [ MimeType = application/json ]
             "description": "Import summary",
             "schema": { "$ref": "#/definitions/ImportSummary" }
           },
+          "401": {
+            "description": "Authentication required"
+          },
           "500": {
             "description": "Server error"
           }
@@ -155,6 +226,9 @@ XData OpenAPI [ MimeType = application/json ]
             "description": "Facet counts",
             "schema": { "$ref": "#/definitions/Facets" }
           },
+          "401": {
+            "description": "Authentication required"
+          },
           "500": {
             "description": "Server error"
           }
@@ -172,6 +246,9 @@ XData OpenAPI [ MimeType = application/json ]
           "200": {
             "description": "Found",
             "schema": { "$ref": "#/definitions/Connection" }
+          },
+          "401": {
+            "description": "Authentication required"
           },
           "404": {
             "description": "Not found"
@@ -198,6 +275,9 @@ XData OpenAPI [ MimeType = application/json ]
           "400": {
             "description": "Invalid request"
           },
+          "401": {
+            "description": "Authentication required"
+          },
           "404": {
             "description": "Not found"
           },
@@ -216,6 +296,9 @@ XData OpenAPI [ MimeType = application/json ]
           "204": {
             "description": "Deleted"
           },
+          "401": {
+            "description": "Authentication required"
+          },
           "404": {
             "description": "Not found"
           },
@@ -227,6 +310,35 @@ XData OpenAPI [ MimeType = application/json ]
     }
   },
   "definitions": {
+    "GoogleAuthRequest": {
+      "type": "object",
+      "required": ["credential"],
+      "properties": {
+        "credential": { "type": "string" },
+        "csrfToken": { "type": "string", "description": "Optional copy of the GIS g_csrf_token cookie value." }
+      }
+    },
+    "AuthUser": {
+      "type": "object",
+      "required": ["sub"],
+      "properties": {
+        "sub": { "type": "string" },
+        "email": { "type": "string", "format": "email", "x-nullable": true },
+        "name": { "type": "string", "x-nullable": true },
+        "picture": { "type": "string", "format": "uri", "x-nullable": true },
+        "hd": { "type": "string", "x-nullable": true },
+        "expiresAt": { "type": "integer", "format": "int64" }
+      }
+    },
+    "AuthState": {
+      "type": "object",
+      "required": ["authenticated"],
+      "properties": {
+        "authenticated": { "type": "boolean" },
+        "sessionToken": { "type": "string", "x-nullable": true },
+        "user": { "$ref": "#/definitions/AuthUser", "x-nullable": true }
+      }
+    },
     "ConnectionOrArray": {
       "type": "object",
       "description": "Accepts either a single Connection object or an array of Connection objects."
