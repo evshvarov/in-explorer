@@ -8,7 +8,7 @@ services:
       - ISC_CPF_MERGE_FILE=/home/irisowner/dev/merge.cpf
     ports:
       - 1972
-      - 57337:52773
+      - 57338:52773
       - 53773
     volumes:
       - ./:/home/irisowner/dev

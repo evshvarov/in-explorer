@@ -5,7 +5,34 @@ Parameter webapp = "/in-explorer/api";
 
 ClassMethod SetupSecurity() As %Status
 {
-    Quit $$$OK
+    Set tSC = $$$OK
+
+    Set sc = ..IntroduceSQLARole()
+    If $$$ISERR(sc) {
+        Set tSC = sc
+    }
+
+    Set sc = ..AddARole()
+    If $$$ISERR(sc) {
+        Set tSC = sc
+    }
+
+    Set sc = ..AddCORS()
+    If $$$ISERR(sc) {
+        Set tSC = sc
+    }
+
+    Set sc = ..IntroduceRoleDBUSER()
+    If $$$ISERR(sc) {
+        Set tSC = sc
+    }
+
+    Set sc = ..AddARoleToUser()
+    If $$$ISERR(sc) {
+        Set tSC = sc
+    }
+
+    Quit tSC
 }
 
 ClassMethod IntroduceSQLARole() As %Status
