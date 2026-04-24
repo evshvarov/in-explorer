@@ -19,7 +19,7 @@
 
     ; importing the source code of the repository as ZPM module
     zn "USER"
-    zpm "install ssl-client"
+    zpm "install sslclient"
     ;zpm "install swagger-ui"
     ;zpm "install iris-table-stats-frontend"
     ;zpm "install dataset-countries"
