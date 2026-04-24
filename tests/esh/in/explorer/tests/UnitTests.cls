@@ -224,4 +224,11 @@ Method TestAuthSessionLifecycle()
     Do $$$AssertEquals(loggedOutStatus, 401, "Logged out status mismatch")
 }
 
+Method TestCurrentEpochUsesUnixTime()
+{
+    Set now = ##class(esh.in.explorer.api.auth).CurrentEpoch()
+    Do $$$AssertTrue(now > 1700000000, "Current epoch should be Unix time in seconds")
+    Do $$$AssertTrue(now < 2000000000, "Current epoch should be in a reasonable Unix timestamp range")
+}
+
 }

@@ -433,7 +433,9 @@ ClassMethod NullableValue(value As %String = "")
 
 ClassMethod CurrentEpoch() As %Integer
 {
-    Quit ($Piece($Horolog, ",", 1) * 86400) + $Piece($Horolog, ",", 2)
+    Set utcDays = +$Piece($ZTIMESTAMP, ",", 1)
+    Set utcSeconds = +$Piece($ZTIMESTAMP, ",", 2)
+    Quit ((utcDays - 47117) * 86400) + utcSeconds
 }
 
 ClassMethod Trim(value As %String = "") As %String
