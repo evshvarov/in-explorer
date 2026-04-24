@@ -73,10 +73,10 @@ ClassMethod AuthLogout() As %DynamicObject
 ClassMethod ListConnections(search As %String, city As %String, industry As %String, company As %String, role As %String, tag As %String, sort As %String = "recent", page As %Integer = 1, pageSize As %Integer = 50) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Quit ..EmptyConnectionPage()
+        Quit ..UnauthorizedResult()
     }
     Set result = {}
-    Set roleFilter = $Get(ARoleFilter)
+    Set roleFilter = $Get(role)
     Set page = ..NormalizePage(page)
     Set pageSize = ..NormalizePageSize(pageSize)
     Set offset = (page - 1) * pageSize
@@ -121,9 +121,7 @@ ClassMethod ListConnections(search As %String, city As %String, industry As %Str
 ClassMethod UpsertConnections(body As %DynamicObject) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Set unauthorized = {}
-        Do unauthorized.%Set("upserted", 0)
-        Quit unauthorized
+        Quit ..UnauthorizedResult()
     }
     Set result = {}
     Do result.%Set("upserted", 0)
@@ -156,7 +154,7 @@ ClassMethod UpsertConnections(body As %DynamicObject) As %DynamicObject
 ClassMethod ImportConnectionsCsv(path As %String) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Quit {}
+        Quit ..UnauthorizedResult()
     }
     Set result = {}
     Set sc = ##class(esh.in.explorer.connectionimport).ImportFromFile(path, .result)
@@ -173,7 +171,7 @@ ClassMethod ImportConnectionsCsv(path As %String) As %DynamicObject
 ClassMethod GetConnection(id As %String) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Quit {}
+        Quit ..UnauthorizedResult()
     }
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
     If '$IsObject(connection) {
@@ -192,7 +190,7 @@ ClassMethod GetConnection(id As %String) As %DynamicObject
 ClassMethod PatchConnection(id As %String, body As %DynamicObject) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Quit {}
+        Quit ..UnauthorizedResult()
     }
     Set result = {}
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
@@ -230,7 +228,7 @@ ClassMethod PatchConnection(id As %String, body As %DynamicObject) As %DynamicOb
 ClassMethod DeleteConnection(id As %String) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Quit ""
+        Quit ..UnauthorizedResult()
     }
     Set connection = ##class(esh.in.explorer.connection).OpenByLinkedInId(id)
     If '$IsObject(connection) {
@@ -271,7 +269,7 @@ ClassMethod DeleteConnection(id As %String) As %DynamicObject
 ClassMethod GetConnectionFacets(search As %String) As %DynamicObject
 {
     If '..RequireAuthenticatedUser(.authUser) {
-        Quit ..EmptyFacets()
+        Quit ..UnauthorizedResult()
     }
     Set search = ##class(esh.in.explorer.connection).NormalizeSearch(search)
     Set result = {}
@@ -630,24 +628,10 @@ ClassMethod RequireAuthenticatedUser(ByRef authUser As %DynamicObject) As %Boole
     Quit ok
 }
 
-ClassMethod EmptyConnectionPage() As %DynamicObject
+ClassMethod UnauthorizedResult(message As %String = "Authentication required") As %DynamicObject
 {
     Set result = {}
-    Do result.%Set("items", [])
-    Do result.%Set("total", 0)
-    Do result.%Set("page", 1)
-    Do result.%Set("pageSize", 50)
-    Quit result
-}
-
-ClassMethod EmptyFacets() As %DynamicObject
-{
-    Set result = {}
-    Do result.%Set("cities", [])
-    Do result.%Set("industries", [])
-    Do result.%Set("companies", [])
-    Do result.%Set("roles", [])
-    Do result.%Set("tags", [])
+    Do result.%Set("error", message)
     Quit result
 }
 
