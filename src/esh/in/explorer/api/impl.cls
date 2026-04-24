@@ -76,7 +76,7 @@ ClassMethod ListConnections(search As %String, city As %String, industry As %Str
         Quit ..UnauthorizedResult()
     }
     Set result = {}
-    Set roleFilter = $Get(role)
+    Set roleFilter = role
     Set page = ..NormalizePage(page)
     Set pageSize = ..NormalizePageSize(pageSize)
     Set offset = (page - 1) * pageSize
@@ -105,7 +105,9 @@ ClassMethod ListConnections(search As %String, city As %String, industry As %Str
     }
 
     While rset.%Next() {
-        Set connection = ##class(esh.in.explorer.connection).%OpenId(rset.%Get("ID"))
+        Set connectionId = ..ResultSetId(rset)
+        Continue:(connectionId = "")
+        Set connection = ##class(esh.in.explorer.connection).%OpenId(connectionId)
         If '$IsObject(connection) {
             Continue
         }
@@ -697,6 +699,15 @@ ClassMethod NormalizePageSize(pageSize As %Integer = 50) As %Integer
 ClassMethod NormalizeSort(sort As %String = "recent") As %String
 {
     Quit $Select((sort = "name") || (sort = "company"):sort, 1:"recent")
+}
+
+ClassMethod ResultSetId(rset) As %String
+{
+    Set id = rset.%Get("ID")
+    If id '= "" {
+        Quit id
+    }
+    Quit rset.%Get("ID1")
 }
 
 }
