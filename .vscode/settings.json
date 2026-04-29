@@ -1,15 +1,39 @@
 {
   "files.associations": {
-
+  
+      "Dockerfile*": "dockerfile",
       "iris.script": "objectscript"
     },
-  "objectscript.conn": {
-    "active": false,
-    "host": "in-explorer.sandbox.developer.intersystems.com",
-    "port": 443,
+  "objectscript.conn" :{
     "ns": "USER",
-    "https": true,
     "username": "_SYSTEM",
-    "password": "@In2025"
-  }
+    "password": "*IrisDemo123",
+    "docker-compose": {
+      "service": "iris",
+      "internalPort": 52773
+    },
+    "active": true,
+    "links": {
+      "UnitTest Portal": "${serverUrl}/csp/sys/%25UnitTest.Portal.Home.cls?$NAMESPACE=USER",
+      "Error Log": "${serverUrl}/csp/sys/op/UtilSysAppErrorNamespaces.csp",
+      "Swagger UI": "${serverUrl}/swagger-ui/index.html",
+      "iris-table-stats-ui": "${serverUrl}/iris-table-stats-ui/index.html"
+    }
+  },
+  "sqltools.connections": [
+    {
+      "namespace": "USER",
+      "connectionMethod": "Server and Port",
+      "showSystem": false,
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 32770,
+      "askForPassword": false,
+      "driver": "InterSystems IRIS",
+      "name": "objectscript-docker",
+      "username": "_SYSTEM",
+      "password": "@In2025"
+    }
+  ]
+
 }
